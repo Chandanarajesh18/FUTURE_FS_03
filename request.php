@@ -1,77 +1,69 @@
 <?php 
-session_start();
-include '../config/db_connect.php';
+include 'config/db_connect.php';
+include 'includes/header.php';
 
-if (!isset($_SESSION['admin_logged_in'])) {
-    header("Location: login.php");
-    exit();
+// Handle form submission
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $patient_name = $_POST['patient_name'];
+    $blood_group = $_POST['blood_group'];
+    $city = $_POST['city'];
+    $hospital_name = $_POST['hospital_name'];
+    $phone = $_POST['phone'];
+    $message = $_POST['message'];
+
+    $sql = "INSERT INTO requests (patient_name, blood_group, city, hospital_name, phone, message) 
+            VALUES ('$patient_name', '$blood_group', '$city', '$hospital_name', '$phone', '$message')";
+    
+    if ($conn->query($sql)) {
+        echo "<script>alert('Blood Request Submitted Successfully!'); window.location='index.php';</script>";
+    } else {
+        echo "<script>alert('Error: " . $conn->error . "');</script>";
+    }
 }
-
-if (isset($_GET['delete_request'])) {
-    $id = $_GET['delete_request'];
-    $conn->query("DELETE FROM requests WHERE id = $id");
-    header("Location: requests.php");
-}
-
-$requests = $conn->query("SELECT * FROM requests ORDER BY created_at DESC");
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Requests - Admin Panel</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body>
-    <div class="admin-container">
-        <aside class="sidebar">
-            <h2>Admin Panel</h2>
-            <ul>
-                <li><a href="index.php"><i class="fas fa-home"></i> Dashboard</a></li>
-                <li><a href="donors.php"><i class="fas fa-users"></i> Donors</a></li>
-                <li><a href="requests.php"><i class="fas fa-file-medical"></i> Requests</a></li>
-                <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-            </ul>
-        </aside>
-        <main class="main-content">
-            <header>
-                <h1>Blood Requests</h1>
-            </header>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Patient Name</th>
-                        <th>Blood Group</th>
-                        <th>City</th>
-                        <th>Hospital</th>
-                        <th>Phone</th>
-                        <th>Message</th>
-                        <th>Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php while($row = $requests->fetch_assoc()): ?>
-                    <tr>
-                        <td><?php echo $row['id']; ?></td>
-                        <td><?php echo $row['patient_name']; ?></td>
-                        <td><?php echo $row['blood_group']; ?></td>
-                        <td><?php echo $row['city']; ?></td>
-                        <td><?php echo $row['hospital_name']; ?></td>
-                        <td><?php echo $row['phone']; ?></td>
-                        <td><?php echo substr($row['message'], 0, 50); ?>...</td>
-                        <td><?php echo $row['created_at']; ?></td>
-                        <td>
-                            <a href="?delete_request=<?php echo $row['id']; ?>" class="btn-danger" onclick="return confirm('Delete this request?')">Delete</a>
-                        </td>
-                    </tr>
-                    <?php endwhile; ?>
-                </tbody>
-            </table>
-        </main>
+<section class="form-container">
+    <div class="section-title">
+        <h2>Request Blood</h2>
+        <p>Fill the form to request blood urgently</p>
     </div>
-</body>
-</html>
+    <form method="POST" action="">
+        <div class="form-group">
+            <label>Patient Name</label>
+            <input type="text" name="patient_name" required>
+        </div>
+        <div class="form-group">
+            <label>Blood Group Required</label>
+            <select name="blood_group" required>
+                <option value="">Select Blood Group</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>City</label>
+            <input type="text" name="city" required>
+        </div>
+        <div class="form-group">
+            <label>Hospital Name</label>
+            <input type="text" name="hospital_name">
+        </div>
+        <div class="form-group">
+            <label>Phone Number</label>
+            <input type="tel" name="phone" required>
+        </div>
+        <div class="form-group">
+            <label>Message (Optional)</label>
+            <textarea name="message" rows="4"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Request</button>
+    </form>
+</section>
+
+<?php include 'includes/footer.php'; ?>
